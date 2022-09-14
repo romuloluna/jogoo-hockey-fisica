@@ -157,7 +157,6 @@ def game():
     player2=Jogador(rigth-15)
     scored_1= space.add_collision_handler(1,101)
     scored_2= space.add_collision_handler(1,102)
-    colisao_1= space.add_collision_handler(1,103)   
 
         
     def player1_scored(space,arbiter,data):
@@ -215,7 +214,6 @@ def game():
             
         display.fill((0,0,255))
         ball.draw()
-        ball.draw2()
         wall_left2.draw()
         wall_left3.draw()
         wall_left4.draw()
@@ -226,8 +224,8 @@ def game():
         wall_rigth3.draw()
         player1.draw()
         player2.draw()
-        print_text(f"Pontuação={player1.score}",left)
-        print_text(f"Pontuação={player2.score}",rigth-160)
+        print_text(f"Jogador 1 = {player1.score}",left)
+        print_text(f"Jogador 2 = {player2.score}",rigth-160)
         pygame.draw.line(display,(255,255,255),[middlex,top],[middlex,bottom],4)
         pygame.display.update()
         clock.tick(fps)
