@@ -1,0 +1,160 @@
+import pygame
+import pymunk
+import random
+from pymunk.vec2d import Vec2d
+LARGURA=1000
+ALTURA=600
+pygame.init()
+display=pygame.display.set_mode((LARGURA,ALTURA))
+pygame.display.set_caption("Ping Pong")
+BACKGROUND = pygame.image.load('background-day.png')
+BACKGROUND = pygame.transform.scale(BACKGROUND, (Constantes.LARGURA, Constantes.ALTURA))
+clock=pygame.time.Clock()
+space=pymunk.Space()
+fps=100
+
+left=25
+rigth=975
+top=35
+bottom=565
+middlex=500
+middley=300
+
+def print_text(text,x):
+    font= pygame.font.SysFont("Algerian",20,True,False)
+    surface=font.render(text,True,(255,255,255))
+    display.blit(surface,(x,5))
+
+class Ball():
+    def __init__(self):
+        self.body=pymunk.Body()
+        self.reset(0,0,0)
+        self.shape=pymunk.Circle(self.body,8)
+        self.shape.density=1
+        self.shape.elasticity=1
+        space.add(self.body,self.shape)
+        self.shape.collision_type=1
+        self.velocity=750
+    def draw(self):
+        x,y=self.body.position
+        pygame.draw.circle(display,(255,255,255),(int(x),int(y)),10)   
+    def reset(self,space=0,arbiter=0,data=0):
+        self.body.position=middlex,middley
+        self.body.velocity=-700*random.choice([-1,1]),-300*random.choice([-1,1])   
+        return False  
+    def standardize_velocity(self,space=0,arbiter=0,data=0):
+        self.body.velocity=self.body.velocity*(self.velocity/self.body.velocity.length)     
+        self.velocity +=50
+
+
+class Wall():
+    def __init__(self,p1,p2,colission_number=None):
+        self.body=pymunk.Body(body_type=pymunk.Body.STATIC)
+        self.shape=pymunk.Segment(self.body,p1,p2,8)
+        self.shape.elasticity=1
+        space.add(self.body,self.shape)
+        if colission_number:
+            self.shape.collision_type=colission_number
+    def draw(self):
+        pygame.draw.line(display,(255,255,255),self.shape.a,self.shape.b,8)
+
+class Jogador:
+    def __init__(self,x):
+        self.body=pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+        self.body.position= x,middley
+        self.shape= pymunk.Segment(self.body,[0,-50],[0,50],12)
+        self.shape.elasticity=1
+        space.add(self.body,self.shape)
+        self.shape.collision_type=100
+        self.score=0
+    def draw(self):
+         p1=self.body.local_to_world(self.shape.a)
+         p2=self.body.local_to_world(self.shape.b) 
+         pygame.draw.line(display,(255,255,255),p1,p2,12)
+    def on_edge(self):
+        if self.body.local_to_world(self.shape.a)[1]<= top:
+            self.body.velocity=0,0
+            self.body.position= self.body.position[0], top+50
+        if self.body.local_to_world(self.shape.b)[1]>=bottom:
+            self.body.velocity=0,0
+            self.body.position= self.body.position[0],bottom-50
+
+
+
+
+    def mover(self,up=True):
+        if up:
+            self.body.velocity=0,-800
+        else:
+            self.body.velocity=0,800
+    def parar(self):
+        self.body.velocity=0,0  
+
+
+def game():
+    ball = Ball()
+    wall_left=Wall([left,top],[left,bottom],102)
+    wall_rigth=Wall([rigth,top],[rigth,bottom],101)
+    wall_top=Wall([left,top],[rigth,top])
+    wall_bottom=Wall([left,bottom],[rigth,bottom])
+    player1=Jogador(left+15)
+    player2=Jogador(rigth-15)
+
+    scored_1= space.add_collision_handler(1,101)
+    scored_2= space.add_collision_handler(1,102)
+
+
+    def player1_scored(space,arbiter,data):
+        player1.score+=1
+        ball.reset()
+        return False
+    scored_1.begin= player1_scored
+    def player2_scored(space,arbiter,data):
+        player2.score+=1
+        ball.reset()
+        return False
+    scored_2.begin= player2_scored
+
+    contact_with_player= space.add_collision_handler(1,100)
+    contact_with_player.post_solve = ball.standardize_velocity
+
+
+
+    while True:
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+               return
+
+        if not player2.on_edge():
+            if pygame.key.get_pressed()[pygame.K_a]:
+                    player2.mover()
+            elif pygame.key.get_pressed()[pygame.K_d]:
+                    player2.mover(False)
+            else:
+                player2.parar()
+        if not player1.on_edge():
+            if pygame.key.get_pressed()[pygame.K_UP]:
+                    player1.mover()
+            elif pygame.key.get_pressed()[pygame.K_DOWN]:
+                    player1.mover(False)
+            else:
+                player1.parar()        
+
+        display.fill((0,0,0))
+        ball.draw()
+        wall_left.draw()
+        wall_bottom.draw()
+        wall_top.draw()
+        wall_rigth.draw()
+        player1.draw()
+        player2.draw()
+        pygame.draw.line(display,(255,255,255),[middlex,top],[middlex,bottom],4)
+        print_text(f"Pontuação={player1.score}",left)
+        print_text(f"Pontuação={player2.score}",rigth-160)
+
+        pygame.display.update()
+        clock.tick(fps)
+        space.step(1/fps)
+
+game()
+pygame.quit()
