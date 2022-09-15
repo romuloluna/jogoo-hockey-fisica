@@ -126,6 +126,9 @@ class Jogador:
         if self.body.local_to_world([0,20])[1]>=bottom:
             self.body.velocity=0,0
             self.body.position= self.body.position[0],bottom-30
+    def colisao(self):
+        colisao_1= space.add_collision_handler
+        self.body.velocity= 0,0
    
     def mover(self,up=True):
         if up:
@@ -144,21 +147,20 @@ class Jogador:
 
 def game():
     ball = Ball()
-    wall_left3=Wall([left,bottom/3 +150],[left,bottom])
-    wall_left2=Wall([left,top],[left,bottom/3+150])
+    wall_left3=Wall([left,bottom/3 +150],[left,bottom],103)
+    wall_left2=Wall([left,top],[left,bottom/3+150],103)
     wall_left4=Wall2([left,bottom/3 +150],[left,bottom/3+60],102)
-    wall_rigth=Wall([rigth,top],[rigth,bottom/3+150])
-    wall_rigth2=Wall([rigth,bottom/3 +150],[rigth,bottom])
+    wall_rigth=Wall([rigth,top],[rigth,bottom/3+150],103)
+    wall_rigth2=Wall([rigth,bottom/3 +150],[rigth,bottom],103)
     wall_rigth3=Wall2([rigth,bottom/3 +150],[rigth,bottom/3+60],101)
-    wall_top=Wall([left,top],[rigth,top])
-    wall_bottom=Wall([left,bottom],[rigth,bottom])
+    wall_top=Wall([left,top],[rigth,top],103)
+    wall_bottom=Wall([left,bottom],[rigth,bottom],103)
 
     player1=Jogador(left+15)
     player2=Jogador(rigth-15)
     scored_1= space.add_collision_handler(1,101)
     scored_2= space.add_collision_handler(1,102)
-
-        
+    colisao= space.add_collision_handler(1,103)
     def player1_scored(space,arbiter,data):
         player1.score+=1
         audio_start.stop()
@@ -175,6 +177,7 @@ def game():
     scored_2.begin= player2_scored
     contact_with_player= space.add_collision_handler(1,100)
     contact_with_player.post_solve = ball.standardize_velocity
+    
        
 
     while True:
