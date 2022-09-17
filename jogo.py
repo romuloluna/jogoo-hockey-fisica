@@ -7,19 +7,18 @@ LARGURA=1000
 ALTURA=600
 pygame.init()
 display=pygame.display.set_mode((LARGURA,ALTURA))
-pygame.display.set_caption("Hookey")
-audio_pong=pygame.mixer.Sound("pong.mp3")
-pygame.mixer.music.set_volume(0.1)
+pygame.display.set_caption("Hockey")
 audio_point=pygame.mixer.Sound("point.ogg")
 audio_point.set_volume(0.5)
-audio_start= pygame.mixer.Sound("musica.ogg")
-audio_start.set_volume(0.05)
+audio_jogo=pygame.mixer.Sound("audio-editor.mp3")
+audio_jogo.set_volume(0.05)
+audio_start= pygame.mixer.Sound("air-hockey.ogg")
+audio_start.set_volume(0.2)
 clock=pygame.time.Clock()
 space=pymunk.Space()
 fps=100
 AMARELO=255,255,0
 BRANCO=255,255,255
-
 left=25
 mid=282
 rigth=975
@@ -32,22 +31,22 @@ point=4
 goalheight = 50
 goalwidth = 20
 light_blue = (255,255,255)
-goal1 = pygame.Rect(0,display.get_height()/2 - 50,10,100)
-goal2 = pygame.Rect(display.get_width()-10,display.get_height()/2 - goalheight,10,100)
 image = pygame.image.load("disc.png")
 image = pygame.transform.scale(image, (30, 30))
 image_vermelha= pygame.image.load("redpad.png")
-image_azul = pygame.transform.scale(image_vermelha, (40, 40))
+image_vermelha= pygame.transform.scale(image_vermelha, (40, 40))
 image_azul = pygame.image.load("bluepad.png")
 image_azul = pygame.transform.scale(image_azul, (40, 40))
-ball_radius=15
+image_start= pygame.image.load("start_screen.png")
+image_start = pygame.transform.scale(image_start, (LARGURA,ALTURA))
 
+ball_radius=15
 def print_text(text,x):
     font= pygame.font.SysFont("Algerian",20,True,False)
     surface=font.render(text,True,(255,255,255))
     display.blit(surface,(x,5))
 
-    
+
 class Ball():
     def __init__(self):
         self.body=pymunk.Body()
@@ -110,6 +109,7 @@ class Jogador:
         space.add(self.body,self.shape)
         self.shape.collision_type=100
         self.score=0
+       
  
 
     def draw(self):
@@ -122,13 +122,59 @@ class Jogador:
         if self.body.local_to_world([0,-20])[1]<= top:
             self.body.velocity=0,0
             self.body.position= self.body.position[0], top+30
-        
         if self.body.local_to_world([0,20])[1]>=bottom:
             self.body.velocity=0,0
             self.body.position= self.body.position[0],bottom-30
-    def colisao(self):
-        colisao_1= space.add_collision_handler
-        self.body.velocity= 0,0
+        if self.body.local_to_world([20,0])[1]>=bottom:
+            self.body.velocity=0,0
+            self.body.position= self.body.position[0],bottom-30
+   
+        
+        
+    
+   
+    def mover(self,up=True):
+        if up:
+            self.body.velocity=0,-800
+        else:
+            self.body.velocity=0,800
+    
+    def parar(self):
+        self.body.velocity=0,0  
+    def andar(self,left=True):
+        if left:
+            self.body.velocity=800,0
+        else:
+            self.body.velocity=-800,0
+class Jogador2:
+    def __init__(self,x):
+        self.body = pymunk.Body()        
+        self.body.position = x,middley
+        self.shape = pymunk.Circle(self.body,20)
+        self.shape.elasticity=1
+        self.shape.density=1
+        self.shape.collision_type= 2
+        space.add(self.body,self.shape)
+        self.shape.collision_type=100
+        self.score=0
+ 
+
+    def draw(self):
+         x,y=self.body.position
+         pygame.draw.circle(display,(255,255,255),(int(x),int(y)),20)
+         display.blit(image_azul, (int(x)-20,int(y)-20))
+
+
+    def on_edge(self):
+        if self.body.local_to_world([0,-20])[1]<= top:
+            self.body.velocity=0,0
+            self.body.position= self.body.position[0], top+30
+       
+    
+        if self.body.local_to_world([0,20])[1]>=bottom:
+            self.body.velocity=0,0
+            self.body.position= self.body.position[0],bottom-30
+        
    
     def mover(self,up=True):
         if up:
@@ -147,40 +193,58 @@ class Jogador:
 
 def game():
     ball = Ball()
-    wall_left3=Wall([left,bottom/3 +150],[left,bottom],103)
-    wall_left2=Wall([left,top],[left,bottom/3+150],103)
+    wall_left3=Wall([left,bottom/3 +150],[left,bottom])
+    wall_left2=Wall([left,top],[left,bottom/3+150])
     wall_left4=Wall2([left,bottom/3 +150],[left,bottom/3+60],102)
-    wall_rigth=Wall([rigth,top],[rigth,bottom/3+150],103)
-    wall_rigth2=Wall([rigth,bottom/3 +150],[rigth,bottom],103)
+    wall_rigth=Wall([rigth,top],[rigth,bottom/3+150])
+    wall_rigth2=Wall([rigth,bottom/3 +150],[rigth,bottom])
     wall_rigth3=Wall2([rigth,bottom/3 +150],[rigth,bottom/3+60],101)
-    wall_top=Wall([left,top],[rigth,top],103)
-    wall_bottom=Wall([left,bottom],[rigth,bottom],103)
+    wall_top=Wall([left,top],[rigth,top])
+    wall_bottom=Wall([left,bottom],[rigth,bottom])
 
     player1=Jogador(left+15)
-    player2=Jogador(rigth-15)
+    player2=Jogador2(rigth-15)
     scored_1= space.add_collision_handler(1,101)
     scored_2= space.add_collision_handler(1,102)
-    colisao= space.add_collision_handler(1,103)
+   
+
     def player1_scored(space,arbiter,data):
         player1.score+=1
-        audio_start.stop()
+        audio_jogo.stop()
         audio_point.play()
         ball.reset()
         return False
     scored_1.begin= player1_scored
     def player2_scored(space,arbiter,data):
         player2.score+=1
-        audio_start.stop()
+        audio_jogo.stop()
         audio_point.play()
         ball.reset()
         return False
     scored_2.begin= player2_scored
     contact_with_player= space.add_collision_handler(1,100)
     contact_with_player.post_solve = ball.standardize_velocity
+
+
+
+
     
-       
+
+    end_it=False
+    while(end_it==False):
+        display.blit(image_start,(0,0))
+        myfont=pygame.font.SysFont("Britannic Bold", 40)
+        nlabel=myfont.render("OLA JOGADOR! CLIQUE NA TELA E INICIE O GAME.", 1, (255, 0, 0))
+        audio_start.play()
+        for event in pygame.event.get():
+                if event.type== pygame.MOUSEBUTTONDOWN:
+                    end_it=True
+                    audio_start.stop()
+        display.blit(nlabel,(200,10))
+        pygame.display.flip()
 
     while True:
+        
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                return
@@ -211,7 +275,8 @@ def game():
                 player1.parar()  
 
         
-          
+
+       
                     
               
             
@@ -233,8 +298,7 @@ def game():
         pygame.display.update()
         clock.tick(fps)
         space.step(1/fps)
-        audio_start.play()
-        
+        audio_jogo.play()
 
 game()
 pygame.quit()
