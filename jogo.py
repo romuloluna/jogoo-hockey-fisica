@@ -1,4 +1,6 @@
 
+
+from dis import dis
 import pygame
 import pymunk
 import random
@@ -13,7 +15,7 @@ audio_point.set_volume(0.5)
 audio_jogo=pygame.mixer.Sound("audio-editor.mp3")
 audio_jogo.set_volume(0.05)
 audio_start= pygame.mixer.Sound("air-hockey.ogg")
-audio_start.set_volume(0.2)
+audio_start.set_volume(0.02)
 clock=pygame.time.Clock()
 space=pymunk.Space()
 fps=100
@@ -39,6 +41,8 @@ image_azul = pygame.image.load("bluepad.png")
 image_azul = pygame.transform.scale(image_azul, (40, 40))
 image_start= pygame.image.load("start_screen.png")
 image_start = pygame.transform.scale(image_start, (LARGURA,ALTURA))
+image_tutorial= pygame.image.load("tutorial.png")
+image_tutorial = pygame.transform.scale(image_tutorial, (LARGURA,ALTURA))
 
 ball_radius=15
 def print_text(text,x):
@@ -56,7 +60,7 @@ class Ball():
         self.shape.elasticity=1
         space.add(self.body,self.shape)
         self.shape.collision_type=1
-        self.velocity=600
+        self.velocity=500
     def draw(self):
         x,y=self.body.position
         pygame.draw.circle(display,(255,255,255),(int(x),int(y)),ball_radius)  
@@ -135,17 +139,17 @@ class Jogador:
    
     def mover(self,up=True):
         if up:
-            self.body.velocity=0,-800
+            self.body.velocity=0,-500
         else:
-            self.body.velocity=0,800
+            self.body.velocity=0,500
     
     def parar(self):
         self.body.velocity=0,0  
     def andar(self,left=True):
         if left:
-            self.body.velocity=800,0
+            self.body.velocity=500,0
         else:
-            self.body.velocity=-800,0
+            self.body.velocity=-500,0
 class Jogador2:
     def __init__(self,x):
         self.body = pymunk.Body()        
@@ -167,6 +171,9 @@ class Jogador2:
 
     def on_edge(self):
         if self.body.local_to_world([0,-20])[1]<= top:
+            self.body.velocity=0,0
+            self.body.position= self.body.position[0], top+30
+        if self.body.local_to_world([0,-20])[1]<=top:
             self.body.velocity=0,0
             self.body.position= self.body.position[0], top+30
        
@@ -232,15 +239,28 @@ def game():
 
     end_it=False
     while(end_it==False):
+        display.fill((0,0,0))
         display.blit(image_start,(0,0))
         myfont=pygame.font.SysFont("Britannic Bold", 40)
-        nlabel=myfont.render("OLA JOGADOR! CLIQUE NA TELA E INICIE O GAME.", 1, (255, 0, 0))
+        nlabel=myfont.render("OLA JOGADOR!CLIQUE NA TELA PARA VISUALIZAR O TUTORIAL.", 1, (255, 0, 0))
         audio_start.play()
         for event in pygame.event.get():
                 if event.type== pygame.MOUSEBUTTONDOWN:
                     end_it=True
+        display.blit(nlabel,(50,20))
+        pygame.display.flip()
+    end_its=False
+    while(end_its==False):
+        pygame.display.update()
+        display.fill((0,0,0))
+        display.blit(image_tutorial,(0,0))
+        myfont=pygame.font.SysFont("Britannic Bold", 40)
+        nlabel=myfont.render("", 1, (255, 0, 0))
+        for event in pygame.event.get():
+                if event.type== pygame.MOUSEBUTTONDOWN:
                     audio_start.stop()
-        display.blit(nlabel,(200,10))
+                    end_its=True
+        display.blit(nlabel,(300,20))
         pygame.display.flip()
 
     while True:
